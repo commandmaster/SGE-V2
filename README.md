@@ -1,2 +1,2 @@
 # SGE-V2
-game engine for js
+A solo-developed game engine designed for 2D games
