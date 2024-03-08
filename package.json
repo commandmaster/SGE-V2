@@ -4,7 +4,8 @@
   "description": "A js game engine",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
   },
   "keywords": [
     "game"
@@ -12,6 +13,7 @@
   "author": "Bennett Friesen",
   "license": "ISC",
   "dependencies": {
+    "@bennettf/simpledb": "^1.1.1",
     "electron": "^29.1.0",
     "electron-packager": "^17.1.2"
   }
