@@ -165,11 +165,13 @@ function createNewProject() {
                 reject();
             }
 
-            fsExtra.copySync(path.join(__dirname, 'gameRenderer'), path.join(folderPath, 'build'));
+            fsExtra.copySync(path.join(__dirname, 'gameTemplate'), path.join(folderPath, 'build'));
         });
 
         currentProject.projectName = folderName;
         currentProject.projectPath = folderPath;
+
+        mainWindow.webContents.send('loadEditor', path.join(folderPath, 'build'));
 
         resolve();
     });
@@ -183,6 +185,8 @@ function loadProject(){
 
         currentProject.projectName = folderName;
         currentProject.projectPath = folderPath;
+
+        mainWindow.webContents.send('loadEditor', path.join(folderPath, 'build'));
     });
 }
 
