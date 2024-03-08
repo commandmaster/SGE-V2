@@ -3,6 +3,7 @@ const url = require('url');
 const path = require('path');
 const fs = require('fs');
 const fsExtra = require('fs-extra');
+const { exec } = require('child_process');
 
 const Database = require('@bennettf/simpledb');
 
@@ -51,11 +52,6 @@ const mainMenuTemplate = [
             },
 
             {
-                label: 'Save Project',
-                click(){saveProject();}
-            },
-
-            {
                 label: 'Load Project',
                 click(){loadProject();}
             },
@@ -67,14 +63,41 @@ const mainMenuTemplate = [
         ]
     },
     {
-        label:'Build',
+        label:'Package',
         submenu:[
             {
-                label: 'Build Game',
+                label: 'Package Game',
                 click(){
-                    buildGame();
+                    packageGame();
                 }
             },
+        ]
+    },
+    {
+        label:'Scripting',
+        submenu:[
+            {
+                label: 'Open GameState',
+                click(){
+                    if (currentProject.projectName === null || currentProject.projectPath === null){
+                        dialog.showErrorBox('Error', 'No project loaded');
+                        return;
+                    }
+        
+                    const filePath = path.join(currentProject.projectPath, 'build/gameState.js');
+        
+                    const command = `code ${filePath}`;
+        
+                    exec(command, (error,) => {
+                    if (error) {
+                        console.error(`Error opening file: ${error}`);
+                        dialog.showErrorBox('Error', 'Script failed to open in VS Code, please check if it is installed and try again.');
+                        return;
+                    }
+                        console.log(`File opened successfully in VS Code`);
+                    });
+                }
+            }
         ]
     },
     {
@@ -89,9 +112,14 @@ const mainMenuTemplate = [
             {
                 label: 'View Game',
                 click(){
+                    if (currentProject.projectName === null || currentProject.projectPath === null){
+                        dialog.showErrorBox('Error', 'No project loaded');
+                        return;
+                    }
+
                     let gameWindow = new BrowserWindow({width: 800, height: 800});
                     gameWindow.loadURL(url.format({
-                        pathname: path.join(__dirname, 'gameRenderer/index.html'),
+                        pathname: path.join(currentProject.projectPath, 'build/index.html'),
                         protocol:'file:',
                         slashes: true
                     }));
@@ -102,8 +130,23 @@ const mainMenuTemplate = [
 
 ];
 
-function buildGame(){
-    console.log('Building Game');
+async function packageGame(){
+    if (currentProject.projectName === null || currentProject.projectPath === null){
+        dialog.showErrorBox('Error', 'No project loaded');
+        return;
+    }
+
+    const packagePath = await dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] });
+    const folderPath = packagePath.filePaths[0];
+
+    fs.mkdirSync(path.join(folderPath, currentProject.projectName + "-packaged"), (err) => {
+        if (err) {
+            console.log(err);
+            return;
+        }
+    });
+
+    fsExtra.copySync(path.join(currentProject.projectPath, "build"), path.join(folderPath, currentProject.projectName + "-packaged"));
 }
 
 function createNewProject() {
@@ -130,11 +173,6 @@ function createNewProject() {
 
         resolve();
     });
-}
-
-async function saveProject(){
-    console.log('Saving Project');
-    
 }
 
 function loadProject(){
