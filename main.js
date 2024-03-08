@@ -2,14 +2,14 @@ const electron = require('electron');
 const url = require('url');
 const path = require('path');
 const fs = require('fs');
-
+const fsExtra = require('fs-extra');
 
 const Database = require('@bennettf/simpledb');
 
 const {dialog, app, BrowserWindow, Menu, shell, ipcMain, nativeTheme, BrowserView} = electron;
 
 let mainWindow;
-let currentProject = {projectName: null, projectPath: null, jsonPath: null, assetsPath: null, scriptsPath: null, imagesPath: null, projectData: null, projectDB: null};
+let currentProject = {projectName: null, projectPath: null};
 
 
 
@@ -76,6 +76,28 @@ const mainMenuTemplate = [
                 }
             },
         ]
+    },
+    {
+        label:'View',
+        submenu:[
+            {
+                label: 'Toggle DevTools',
+                click(item, focusedWindow){
+                    focusedWindow.toggleDevTools();
+                }
+            },
+            {
+                label: 'View Game',
+                click(){
+                    let gameWindow = new BrowserWindow({width: 800, height: 800});
+                    gameWindow.loadURL(url.format({
+                        pathname: path.join(__dirname, 'gameRenderer/index.html'),
+                        protocol:'file:',
+                        slashes: true
+                    }));
+                }
+            }
+        ]
     }
 
 ];
@@ -92,38 +114,16 @@ function createNewProject() {
         const folderPath = result.filePaths[0]
         const folderName = path.basename(folderPath);
 
-       
-
-        currentProject.jsonPath = path.join(folderPath, 'game.json');
-        currentProject.projectDB = Database.createDB(currentProject.jsonPath);
     
 
-        fs.mkdir(folderPath + '/assets', (err) => {
+        fs.mkdir(folderPath + '/build', (err) => {
             if (err) {
                 console.log(err);
                 reject();
             }
 
-            fs.mkdir(folderPath + '/scripts', (err) => {
-                if (err) {
-                    console.log(err);
-                    reject();
-                }
-            });
-    
-            fs.mkdir(folderPath + '/images', (err) => {
-                if (err) {
-                    console.log(err);
-                    reject();
-                }
-            });
-            
-            currentProject.assetsPath = path.join(folderPath, 'assets');
-            currentProject.scriptsPath = path.join(folderPath, 'assets/scripts');
-            currentProject.imagesPath = path.join(folderPath, 'assets/images');
+            fsExtra.copySync(path.join(__dirname, 'gameRenderer'), path.join(folderPath, 'build'));
         });
-
-        
 
         currentProject.projectName = folderName;
         currentProject.projectPath = folderPath;
@@ -145,12 +145,6 @@ function loadProject(){
 
         currentProject.projectName = folderName;
         currentProject.projectPath = folderPath;
-        
-        currentProject.jsonPath = path.join(folderPath, 'game.json');
-        currentProject.assetsPath = path.join(folderPath, 'assets');
-        currentProject.scriptsPath = path.join(folderPath, 'assets/scripts');
-        currentProject.imagesPath = path.join(folderPath, 'assets/images');
-
     });
 }
 
