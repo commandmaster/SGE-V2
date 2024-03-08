@@ -12,11 +12,6 @@ export default class GameState{
     }
 
     Setup(){
-        // Load Title Screen
-        
-        
-        
-
         window.addEventListener("resize", () => {
           // To prevent unintended behavior, reload the page on resize
           location.reload();
@@ -31,9 +26,7 @@ export default class GameState{
     Update(){
       // Runs every frame
 
-      if (this.gameEngine.inputSystem.getInputDown("menu")){
-        this.gameEngine.loadLevel("titleScreen", "titleLevelManager");
-      }
+      
     }
 
   }
